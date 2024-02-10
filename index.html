@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <!--font-->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet"> <!---Font-->
+    <title>Money Washing Slot Availability</title>
+</head>
+<body>
+    <section name="Home" class="HomeMain">
+    <div class="container">
+        <h1>Money Wash</h1>
+        <form method="POST" action="https://script.google.com/macros/s/AKfycbzVaNXJgcfzlWaI5d5EbMhO_64CCcmCSv2jgmzsU-pjAvED2XEaXuX969PKDe8Br0kH/exec">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="Name" required>
+            
+            <label for="cityNumber">City Number:</label>
+            <input type="text" id="cityNumber" name="City Number" required>
+            
+            <label for="date">Date (MM/DD):</label>
+            <input type="text" id="date" name="Date" pattern="^(0[1-9]|1[0-2])/(0[1-9]|1[0-9]|2[0-9]|3[0-1])$" placeholder="MM/DD" required>
+
+            <label for="slotName">Slot:</label>
+            <select id="slotName" name="Slot" required>
+                <option value="Main Tsunami">Main Tsunami</option>
+                <option value="Secondary Tsunami">Secondary Tsunami</option>
+            </select>
+
+            <label for="amount">Amount:</label>
+            <input type="number" id="amount" name="Amount" required>
+            
+            <button type="submit" value="Check Availability" class="custom-btn btn-16">Reserve</button>
+
+        </form>
+        <div id="availabilityResult"></div>
+    </div>
+</section>
+    <script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remaining Balance Tracker</title>
+    <style>
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+    </style>
+    <!-- Include Google Sheets API script -->
+    <script src="https://apis.google.com/js/api.js"></script>
+
+    <script>
+        // Replace with your Google Sheets API key
+        const API_KEY = '6c9d226fc9f09e0807654c661cb0fb92cdddb468';
+
+        // Replace with the JSON file content from the service account
+        const SERVICE_ACCOUNT_KEY = {"----"};
+
+        // Replace with your Google Sheet ID
+        const SPREADSHEET_ID = '1CTJQHrS3GVfwDYHO-FT_N1_Tr-6vCRLGSmjbp3DQWp0';
+
+        // Object to store remaining balances for each date and slot
+        let remainingBalances = {};
+
+        // Load Google Sheets API
+        gapi.load('client', init);
+
+        function init() {
+            gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+                clientId: SERVICE_ACCOUNT_KEY.client_id,
+                scope: 'https://www.googleapis.com/auth/spreadsheets',
+            }).then(() => {
+                // API is ready
+                console.log('API initialized');
+            });
+        }
+
+        function updateBalance() {
+            const date = document.getElementById('date').value;
+            const slot = document.getElementById('slot').value;
+            const inputValue = parseInt(document.getElementById('inputValue').value);
+
+            const key = `${date}_${slot}`;
+
+            // Load Google Sheets API and update balance
+            gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: SPREADSHEET_ID,
+                range: key,
+            }).then((response) => {
+                const values = response.result.values;
+
+                let remainingBalance;
+                if (values && values.length > 0) {
+                    remainingBalance = parseInt(values[0][0]);
+                } else {
+                    remainingBalance = 2000000; // Initial balance
+                }
+
+                // Check if the input value is valid
+                if (inputValue <= 0) {
+                    showMessage('Input value must be greater than 0');
+                    return;
+                }
+
+                // Check if the input value is not greater than the remaining balance
+                if (inputValue > remainingBalance) {
+                    showMessage('Not enough remaining balance');
+                    return;
+                }
+
+                // Check if the slot has already been used for the date
+                if (remainingBalance === 0) {
+                    showMessage(`Slot ${slot} has already been used for Date ${date}`);
+                    return;
+                }
+
+                // Update remaining balance
+                remainingBalance -= inputValue;
+
+                // Update message and display remaining balance
+                showMessage(`Remaining balance updated for Date ${date}, Slot ${slot}`);
+                displayRemainingBalances();
+
+                // Check if the remaining balance is now 0 for this slot
+                if (remainingBalance === 0) {
+                    showMessage(`Slot ${slot} has reached 0 for Date ${date}. Move to the next slot.`);
+                }
+
+                // Update balance in Google Sheets
+                gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID,
+                    range: key,
+                    valueInputOption: 'RAW',
+                    resource: {
+                        values: [[remainingBalance]],
+                    },
+                }).then(() => {
+                    console.log('Balance updated in Google Sheets');
+                });
+            });
+        }
+
+        function showMessage(message) {
+            document.getElementById('message').textContent = message;
+        }
+
+        function displayRemainingBalances() {
+            const date = document.getElementById('date').value;
+            const remainingBalancesDiv = document.getElementById('remainingBalances');
+            remainingBalancesDiv.innerHTML = '';
+
+            // Display existing balances when the page loads
+            if (remainingBalances[date]) {
+                for (const [slot, balance] of Object.entries(remainingBalances[date])) {
+                    const p = document.createElement('p');
+                    p.textContent = `Remaining Balance - ${capitalizeFirstLetter(slot)} for Date ${date}: ${balance}`;
+                    remainingBalancesDiv.appendChild(p);
+                }
+            }
+        }
+
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            displayRemainingBalances();
+        });
+    </script>
+</head>
+<body>
+
+<h1>Remaining Balance Tracker</h1>
+
+<form action="//script.google.com/macros/s/AKfycbzVaNXJgcfzlWaI5d5EbMhO_64CCcmCSv2jgmzsU-pjAvED2XEaXuX969PKDe8Br0kH/exec" method="POST" id="balanceForm" onsubmit="updateBalance(); return false;">
+    <label for="date">Date (MM/DD):</label>
+    <input type="text" id="date" placeholder="MM/DD" required pattern="^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$">
+
+    <label for="slot">Slot:</label>
+    <select id="slot" required>
+        <option value="main">Main Tsunami</option>
+        <option value="secondary">Secondary Tsunami</option>
+    </select>
+
+    <label for="inputValue">Input Value:</label>
+    <input type="number" id="inputValue" required>
+
+    <button type="submit">Update Balance</button>
+</form>
+
+<div id="remainingBalances"></div>
+<p id="message"></p>
+
+</body>
+</html>
